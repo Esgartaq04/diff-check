@@ -9,6 +9,10 @@ upload, no round trip to a server.
 - **Side-by-side and inline views**, switchable without recomputing the diff.
 - **Line-level highlighting** — removals in red with a `−` marker, additions in
   green with a `+`, so the diff still reads without colour.
+- **Word-level highlighting on top of that** — within a changed line, the words
+  that actually differ are bold on a stronger tint, while the line keeps its own
+  red or green background. Lines too unalike to word-match meaningfully fall
+  back to the plain line highlight rather than speckling the row.
 - **Hide unchanged lines**, collapsing long identical stretches into a band you
   can click to expand.
 - **Comparison options**: ignore case, ignore leading/trailing whitespace,
@@ -70,5 +74,10 @@ node -e "
 "
 ```
 
+The same Myers routine runs a second time, over word tokens, to find the
+changed words inside a pair of changed lines. Whitespace between two changed
+words is absorbed into the highlight so an edit reads as one run rather than a
+row of stripes.
+
 Rendering builds every node with `createElement` + `textContent`; no user text
-ever reaches `innerHTML`.
+ever reaches `innerHTML`, marks included.
