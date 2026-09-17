@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diff Check &mdash; compare two texts</title>
+<meta name="description" content="Paste or drop two texts and see the differences highlighted in place. Runs entirely in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>&#9707;</text></svg>">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="site-head">
+  <h1>Diff Check</h1>
+  <p>Paste or drop two texts. Differences are highlighted right here on the page &mdash; nothing is uploaded, nothing opens in a new tab.</p>
+</header>
+
+<main>
+  <section class="panes" aria-label="Text to compare">
+    <div class="pane" id="pane-a">
+      <div class="pane-head">
+        <label for="input-a">Original</label>
+        <span class="pane-meta" id="meta-a">empty</span>
+        <button type="button" class="ghost" id="load-a">Load file</button>
+        <input type="file" id="file-a" class="visually-hidden" accept="text/*,.txt,.md,.json,.csv,.tsv,.log,.xml,.yml,.yaml,.js,.ts,.css,.html,.py,.java,.rb,.go,.rs,.c,.h,.cpp,.sh,.sql,.ini,.toml,.env">
+      </div>
+      <textarea id="input-a" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the original text here, or drop a file onto this box."></textarea>
+      <div class="drop-veil" aria-hidden="true"><span>Drop to load</span></div>
+    </div>
+
+    <div class="pane" id="pane-b">
+      <div class="pane-head">
+        <label for="input-b">Changed</label>
+        <span class="pane-meta" id="meta-b">empty</span>
+        <button type="button" class="ghost" id="load-b">Load file</button>
+        <input type="file" id="file-b" class="visually-hidden" accept="text/*,.txt,.md,.json,.csv,.tsv,.log,.xml,.yml,.yaml,.js,.ts,.css,.html,.py,.java,.rb,.go,.rs,.c,.h,.cpp,.sh,.sql,.ini,.toml,.env">
+      </div>
+      <textarea id="input-b" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the changed text here, or drop a file onto this box."></textarea>
+      <div class="drop-veil" aria-hidden="true"><span>Drop to load</span></div>
+    </div>
+  </section>
+
+  <section class="controls">
+    <div class="buttons">
+      <button type="button" class="primary" id="compare">Compare</button>
+      <button type="button" id="swap">Swap sides</button>
+      <button type="button" id="clear">Clear both</button>
+    </div>
+
+    <fieldset class="options">
+      <legend class="visually-hidden">Comparison options</legend>
+      <label><input type="checkbox" id="opt-case"> Ignore case</label>
+      <label><input type="checkbox" id="opt-ws"> Ignore leading &amp; trailing whitespace</label>
+      <label><input type="checkbox" id="opt-blank"> Ignore blank lines <span class="hint">(hidden from results)</span></label>
+      <label><input type="checkbox" id="opt-collapse" checked> Hide unchanged lines</label>
+    </fieldset>
+  </section>
+
+  <section class="results" aria-label="Differences">
+    <div class="results-head">
+      <p class="stats" id="stats" role="status" aria-live="polite">Enter text on both sides to see the differences.</p>
+      <div class="viewtoggle" role="group" aria-label="View mode">
+        <button type="button" id="view-split" data-view="split" aria-pressed="true">Side by side</button>
+        <button type="button" id="view-unified" data-view="unified" aria-pressed="false">Inline</button>
+      </div>
+    </div>
+    <p class="notice" id="notice" hidden></p>
+    <div id="output" class="output"></div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <p>Everything runs in your browser. Your text never leaves this page.</p>
+</footer>
+
+<script src="assets/diff.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

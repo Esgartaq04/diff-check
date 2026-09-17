@@ -1,0 +1,256 @@
+/* Diff Check - styles. Light and dark, no external fonts or assets. */
+
+:root {
+  --bg: #ffffff;
+  --surface: #f6f8fa;
+  --surface-2: #eaeef2;
+  --border: #d0d7de;
+  --text: #1f2328;
+  --muted: #656d76;
+  --accent: #0969da;
+  --accent-text: #ffffff;
+
+  --del-bg: #ffebe9;
+  --del-gutter: #ffd7d5;
+  --del-ink: #cf222e;
+  --add-bg: #e6ffec;
+  --add-gutter: #ccffd8;
+  --add-ink: #1a7f37;
+  --filler: #fafbfc;
+  --filler-stripe: #eceff2;
+
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius: 8px;
+  --line-h: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #9198a1;
+    --accent: #4493f8;
+    --accent-text: #0d1117;
+
+    --del-bg: rgba(248, 81, 73, 0.14);
+    --del-gutter: rgba(248, 81, 73, 0.32);
+    --del-ink: #ff8182;
+    --add-bg: rgba(63, 185, 80, 0.14);
+    --add-gutter: rgba(63, 185, 80, 0.32);
+    --add-ink: #56d364;
+    --filler: #0f141b;
+    --filler-stripe: #1b222b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 16px 48px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: var(--line-h);
+}
+
+main, .site-head, .site-foot { max-width: 1280px; margin: 0 auto; }
+
+.site-head { padding: 28px 0 20px; }
+.site-head h1 { margin: 0 0 6px; font-size: 1.6rem; letter-spacing: -0.01em; }
+.site-head p { margin: 0; color: var(--muted); max-width: 62ch; }
+
+.site-foot { padding-top: 28px; color: var(--muted); font-size: 0.85rem; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---------- input panes ---------- */
+
+.panes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.pane { position: relative; display: flex; flex-direction: column; min-width: 0; }
+
+.pane-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px; min-height: 28px;
+}
+.pane-head label { font-weight: 600; font-size: 0.9rem; }
+.pane-meta { color: var(--muted); font-size: 0.8rem; margin-right: auto; }
+
+textarea {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  tab-size: 4;
+}
+textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+.drop-veil {
+  position: absolute; inset: 28px 0 0;
+  display: none; align-items: center; justify-content: center;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg);
+  opacity: 0.94;
+  font-weight: 600; color: var(--accent);
+  pointer-events: none;
+}
+.pane.dragging .drop-veil { display: flex; }
+
+/* ---------- controls ---------- */
+
+.controls {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 12px 20px; margin: 16px 0 24px;
+}
+.buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+button {
+  font: inherit;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+button:hover { background: var(--surface-2); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+button.primary:hover { filter: brightness(1.08); }
+button.ghost { padding: 3px 9px; font-size: 0.8rem; }
+
+.options {
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  margin: 0; padding: 0; border: 0;
+}
+.options label { display: flex; align-items: center; gap: 6px; font-size: 0.87rem; color: var(--text); }
+.options input { margin: 0; accent-color: var(--accent); }
+.options .hint { color: var(--muted); }
+
+/* ---------- results ---------- */
+
+.results-head {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 12px; margin-bottom: 10px;
+}
+.stats { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.stats .n-add { color: var(--add-ink); font-weight: 600; }
+.stats .n-del { color: var(--del-ink); font-weight: 600; }
+.stats .n-chg { color: var(--accent); font-weight: 600; }
+.stats.identical { color: var(--add-ink); font-weight: 600; }
+
+.viewtoggle { display: flex; }
+.viewtoggle button { border-radius: 0; font-size: 0.85rem; }
+.viewtoggle button:first-child { border-radius: 6px 0 0 6px; }
+.viewtoggle button:last-child { border-radius: 0 6px 6px 0; margin-left: -1px; }
+.viewtoggle button[aria-pressed="true"] {
+  background: var(--accent); border-color: var(--accent);
+  color: var(--accent-text); font-weight: 600;
+}
+
+.notice {
+  margin: 0 0 10px; padding: 8px 12px;
+  border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 4px; background: var(--surface);
+  font-size: 0.85rem; color: var(--muted);
+}
+
+.output {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+  max-height: 70vh;
+  background: var(--bg);
+}
+
+.empty-state { padding: 40px 20px; text-align: center; color: var(--muted); }
+
+/* The diff itself is one CSS grid, so both sides of a row always share a row
+   height - alignment survives wrapped long lines with no scroll-syncing JS. */
+.diff {
+  display: grid;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  tab-size: 4;
+}
+.diff-split { grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content minmax(0, 1fr); }
+.diff-unified { grid-template-columns: max-content max-content max-content minmax(0, 1fr); }
+
+.cell { padding: 1px 0; min-height: 1.5em; }
+
+.cell-num, .cell-sign {
+  user-select: none;
+  color: var(--muted);
+  text-align: right;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+.cell-sign { padding-left: 4px; padding-right: 4px; text-align: center; }
+
+.cell-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-right: 12px;
+}
+
+/* the divider between the two halves in side-by-side */
+.diff-split .cell-num.col-b { border-left: 1px solid var(--border); }
+
+.s-eq { background: var(--bg); }
+.s-eq.cell-num { background: var(--surface); }
+
+.s-del { background: var(--del-bg); }
+.s-del.cell-num, .s-del.cell-sign { background: var(--del-gutter); color: var(--del-ink); }
+
+.s-add { background: var(--add-bg); }
+.s-add.cell-num, .s-add.cell-sign { background: var(--add-gutter); color: var(--add-ink); }
+
+.s-empty {
+  background: repeating-linear-gradient(
+    45deg, var(--filler), var(--filler) 6px, var(--filler-stripe) 6px, var(--filler-stripe) 12px
+  );
+}
+
+.skip { grid-column: 1 / -1; }
+.skip button {
+  display: block; width: 100%;
+  padding: 4px 12px; border: 0;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--accent);
+  font-family: var(--mono); font-size: 12px; text-align: left;
+}
+.skip button:hover { background: var(--surface-2); }
+
+@media (max-width: 760px) {
+  .panes { grid-template-columns: 1fr; }
+  .results-head { align-items: flex-start; }
+  /* Two columns of code cannot fit a phone. Rather than hiding cells - which
+     would desync the grid - let the side-by-side view scroll sideways. */
+  .diff-split { min-width: 560px; }
+}
+
+@media print {
+  .controls, .viewtoggle, .site-foot, textarea, .pane-head { display: none; }
+  .output { max-height: none; overflow: visible; }
+}
