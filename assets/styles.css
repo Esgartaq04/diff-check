@@ -16,6 +16,8 @@
   --add-bg: #e6ffec;
   --add-gutter: #ccffd8;
   --add-ink: #1a7f37;
+  --del-word: #ffc2bf;
+  --add-word: #a0eeb4;
   --filler: #fafbfc;
   --filler-stripe: #eceff2;
 
@@ -42,6 +44,8 @@
     --add-bg: rgba(63, 185, 80, 0.14);
     --add-gutter: rgba(63, 185, 80, 0.32);
     --add-ink: #56d364;
+    --del-word: rgba(248, 81, 73, 0.4);
+    --add-word: rgba(63, 185, 80, 0.4);
     --filler: #0f141b;
     --filler-stripe: #1b222b;
   }
@@ -223,6 +227,21 @@ button.ghost { padding: 3px 9px; font-size: 0.8rem; }
 
 .s-add { background: var(--add-bg); }
 .s-add.cell-num, .s-add.cell-sign { background: var(--add-gutter); color: var(--add-ink); }
+
+/* The changed words inside a changed line. The row keeps its own tint; this
+   sits on top of it, so you can still see which side a line belongs to.
+   Horizontal padding is cancelled by an equal negative margin so the
+   monospace column rhythm survives the highlight. */
+.cell-text mark {
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  border-radius: 2px;
+  padding: 0 1px;
+  margin: 0 -1px;
+}
+.cell-text mark.w-del { background: var(--del-word); }
+.cell-text mark.w-add { background: var(--add-word); }
 
 .s-empty {
   background: repeating-linear-gradient(

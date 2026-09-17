@@ -89,6 +89,39 @@
     return cell('cell-num ' + (side === 'b' ? 'col-b ' : '') + tone, value === null ? '' : String(value));
   }
 
+  /* Word marks are worked out at render time and cached on the row, so
+     switching views does not redo them. A fresh compare builds fresh rows,
+     which is what invalidates the cache when the options change. */
+  function wordsFor(row) {
+    if (row.kind !== 'change') return null;
+    if (row._words === undefined) {
+      row._words = DiffEngine.diffWords(row.left.text, row.right.text, options());
+    }
+    return row._words;
+  }
+
+  /* Still no innerHTML: each run of changed words becomes its own <mark>
+     node, layered on top of the row tint rather than replacing it. */
+  function textCell(tone, text, segments, side) {
+    var node = document.createElement('div');
+    node.className = 'cell cell-text ' + tone;
+    if (!segments) {
+      node.textContent = text;
+      return node;
+    }
+    for (var i = 0; i < segments.length; i++) {
+      if (!segments[i].changed) {
+        node.appendChild(document.createTextNode(segments[i].text));
+        continue;
+      }
+      var mark = document.createElement('mark');
+      mark.className = side === 'left' ? 'w-del' : 'w-add';
+      mark.textContent = segments[i].text;
+      node.appendChild(mark);
+    }
+    return node;
+  }
+
   function skipBand(band) {
     var wrap = document.createElement('div');
     wrap.className = 'cell skip';
@@ -106,14 +139,15 @@
 
     var leftTone = row.kind === 'equal' ? 's-eq' : (row.left ? 's-del' : 's-empty');
     var rightTone = row.kind === 'equal' ? 's-eq' : (row.right ? 's-add' : 's-empty');
+    var words = wordsFor(row);
 
     frag.appendChild(num('a', row.left ? row.left.num : null, leftTone));
     frag.appendChild(cell('cell-sign ' + leftTone, row.left && row.kind !== 'equal' ? '−' : ''));
-    frag.appendChild(cell('cell-text ' + leftTone, row.left ? row.left.text : ''));
+    frag.appendChild(textCell(leftTone, row.left ? row.left.text : '', words && words.left, 'left'));
 
     frag.appendChild(num('b', row.right ? row.right.num : null, rightTone));
     frag.appendChild(cell('cell-sign ' + rightTone, row.right && row.kind !== 'equal' ? '+' : ''));
-    frag.appendChild(cell('cell-text ' + rightTone, row.right ? row.right.text : ''));
+    frag.appendChild(textCell(rightTone, row.right ? row.right.text : '', words && words.right, 'right'));
   }
 
   function unifiedRowCells(row, frag) {
@@ -123,21 +157,22 @@
       frag.appendChild(num('a', row.left.num, 's-eq'));
       frag.appendChild(num('b', row.right.num, 's-eq'));
       frag.appendChild(cell('cell-sign s-eq', ''));
-      frag.appendChild(cell('cell-text s-eq', row.left.text));
+      frag.appendChild(textCell('s-eq', row.left.text, null, 'left'));
       return;
     }
+    var words = wordsFor(row);
     // a changed line becomes a removed row followed by an added row
     if (row.left) {
       frag.appendChild(num('a', row.left.num, 's-del'));
       frag.appendChild(num('b', null, 's-del'));
       frag.appendChild(cell('cell-sign s-del', '−'));
-      frag.appendChild(cell('cell-text s-del', row.left.text));
+      frag.appendChild(textCell('s-del', row.left.text, words && words.left, 'left'));
     }
     if (row.right) {
       frag.appendChild(num('a', null, 's-add'));
       frag.appendChild(num('b', row.right.num, 's-add'));
       frag.appendChild(cell('cell-sign s-add', '+'));
-      frag.appendChild(cell('cell-text s-add', row.right.text));
+      frag.appendChild(textCell('s-add', row.right.text, words && words.right, 'right'));
     }
   }
 

@@ -259,6 +259,103 @@ var DiffEngine = (function () {
     return stats;
   }
 
+  /* ------------------------------------------------------------ word diff */
+
+  /* Words, whitespace runs, and any other single character. The `u` flag keeps
+   * accented letters and CJK inside word tokens and stops emoji being split
+   * into surrogate halves; the fallback covers engines without \p{...}. */
+  var WORD_RE;
+  try {
+    WORD_RE = new RegExp('[\\p{L}\\p{N}_]+|\\s+|[\\s\\S]', 'gu');
+  } catch (e) {
+    WORD_RE = /[A-Za-z0-9_]+|\s+|[\s\S]/g;
+  }
+
+  var WORD_TOKEN_LIMIT = 400;     // very long lines are not worth tokenising
+  var WORD_MIN_SIMILARITY = 0.25; // below this the two lines barely overlap
+
+  function tokenize(text) {
+    WORD_RE.lastIndex = 0;
+    return text.match(WORD_RE) || [];
+  }
+
+  function wordKey(token, opts) {
+    var t = token;
+    if (opts && opts.ignoreWhitespace && /^\s+$/.test(t)) t = ' ';
+    if (opts && opts.ignoreCase) t = t.toLowerCase();
+    return t;
+  }
+
+  /* A space sitting between two changed words matched on both sides, so it is
+   * flagged unchanged and would split one edit into a row of striped marks.
+   * Whitespace carries no information of its own here, so absorb it into the
+   * surrounding change and let the highlight read as a single run. */
+  function bridgeGaps(tokens, changed) {
+    for (var i = 1; i < tokens.length - 1; i++) {
+      if (changed[i] || !/^\s+$/.test(tokens[i])) continue;
+      if (changed[i - 1] && changed[i + 1]) changed[i] = true;
+    }
+  }
+
+  /* Glue neighbouring tokens that share a flag into one run, so the renderer
+   * emits one <mark> per stretch of changed text rather than one per token. */
+  function toSegments(tokens, changed) {
+    var out = [];
+    var i = 0;
+    while (i < tokens.length) {
+      var flag = changed[i];
+      var text = '';
+      while (i < tokens.length && changed[i] === flag) { text += tokens[i]; i++; }
+      out.push({ text: text, changed: flag });
+    }
+    return out;
+  }
+
+  /*
+   * Which words differ between two versions of one line.
+   *
+   * Returns { left, right } as arrays of { text, changed }, or null when word
+   * marks would not help - an empty side, a line too long to bother with, or
+   * two lines so unalike that marking them would just speckle the row. Callers
+   * fall back to the plain line highlight on null.
+   */
+  function diffWords(aText, bText, opts) {
+    var aTok = tokenize(aText);
+    var bTok = tokenize(bText);
+    if (!aTok.length || !bTok.length) return null;
+    if (aTok.length > WORD_TOKEN_LIMIT || bTok.length > WORD_TOKEN_LIMIT) return null;
+
+    var i;
+    var aKeys = new Array(aTok.length);
+    var bKeys = new Array(bTok.length);
+    for (i = 0; i < aTok.length; i++) aKeys[i] = wordKey(aTok[i], opts);
+    for (i = 0; i < bTok.length; i++) bKeys[i] = wordKey(bTok[i], opts);
+
+    var ops = myers(aKeys, bKeys, aKeys.length + bKeys.length);
+    if (!ops) return null;
+
+    var aChanged = new Array(aTok.length);
+    var bChanged = new Array(bTok.length);
+    for (i = 0; i < aTok.length; i++) aChanged[i] = true;
+    for (i = 0; i < bTok.length; i++) bChanged[i] = true;
+
+    var shared = 0;
+    for (i = 0; i < ops.length; i++) {
+      if (ops[i].type !== 'equal') continue;
+      aChanged[ops[i].aIndex] = false;
+      bChanged[ops[i].bIndex] = false;
+      shared += aTok[ops[i].aIndex].length;
+    }
+
+    var longest = Math.max(aText.length, bText.length);
+    if (longest > 0 && shared / longest < WORD_MIN_SIMILARITY) return null;
+
+    bridgeGaps(aTok, aChanged);
+    bridgeGaps(bTok, bChanged);
+
+    return { left: toSegments(aTok, aChanged), right: toSegments(bTok, bChanged) };
+  }
+
   /*
    * One call does the whole job: raw text in, rows + stats out.
    *
@@ -312,7 +409,9 @@ var DiffEngine = (function () {
     diffLines: diffLines,
     buildRows: buildRows,
     collapseUnchanged: collapseUnchanged,
-    countStats: countStats
+    countStats: countStats,
+    diffWords: diffWords,
+    tokenize: tokenize
   };
 })();
 
